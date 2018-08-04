@@ -1,0 +1,23 @@
+{
+  "name": "__MSG_appName__",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "__MSG_appDescription__",
+  "icons": {
+    "16": "images/github-icon-16.png",
+    "128": "images/github-icon-128.png",
+    "256": "images/github-icon-256.png"
+  },
+  "default_locale": "en",
+  "background": {
+    "scripts": ["scripts/chromereload.js", "scripts/background.js"]
+  },
+  "permissions": ["tabs", "webRequest", "*://*.google.com/"],
+  "content_scripts": [
+    {
+      "matches": ["*://www.google.com/*", "*://www.google.co.in/*"],
+      "js": ["bower_components/jquery/dist/jquery.min.js", "scripts/inject.js"],
+      "css": ["scripts/inject.css"]
+    }
+  ]
+}
