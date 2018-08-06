@@ -8,4 +8,5 @@ test/bower_components
 package
 app/scripts
 app-deployable/
+deployable/
 .DS_Store
