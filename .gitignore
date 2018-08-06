@@ -9,4 +9,5 @@ package
 app/scripts
 app-deployable/
 deployable/
+deployable.zip
 .DS_Store

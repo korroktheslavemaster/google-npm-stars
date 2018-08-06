@@ -1,9 +1,29 @@
-let headers = new Headers();
 let githubAccessToken = "a4420c6e4256e36b0a371f8cc0cdd7475a9f1590";
-headers.append(
-  "Authorization",
-  "Basic " + btoa("google-npm:nobody-can-guess-this")
-);
+let headers = {
+  "Content-Type": "application/json; charset=utf-8",
+  Authorization: `Bearer ${githubAccessToken}`
+};
+// Using graphql v4 since v3 was returning incorrect pushed_at
+// https://github.com/react-community/native-directory/issues/20
+let query = (user, repo) => ({
+  query: `
+  query {
+  repository(owner:"${user}", name:"${repo}") {
+    stargazers {
+      totalCount
+    }
+    ref(qualifiedName: "master") {
+      target {
+        ... on Commit {
+          id
+          committedDate
+        }
+      }
+    }
+  }
+}
+  `
+});
 function addCommas(t) {
   return String(t).replace(/(\d)(?=(\d{3})+$)/g, "$1,");
 }
@@ -14,12 +34,32 @@ var getGithubStarsAndUpdatedAgo = async gitUrl => {
   var [user, repo, ...rest] = path.split("/"); // need to ignore further arguments
   // remove .git from repo if its there...
   repo = repo.endsWith(".git") ? repo.slice(0, -4) : repo;
-  var res = await fetch(`https://api.github.com/repos/${user}/${repo}`, {
-    headers
+  // hack: graphql v4 doesn't redirect for renamed repo, but v3 does
+  // https://platform.github.community/t/repository-redirects-in-api-v4-graphql/4417
+  var repoInfo = await fetch(`https://api.github.com/repos/${user}/${repo}`);
+  var {
+    name: repoName,
+    owner: { login: repoUser }
+  } = await repoInfo.json();
+  var res = await fetch(`https://api.github.com/graphql`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(query(repoUser, repoName))
   });
   var resJson = await res.json();
-  const { stargazers_count, pushed_at } = resJson;
-  return [stargazers_count, moment(pushed_at).fromNow()];
+  if (resJson.errors) {
+    console.log(`errors for ${repoUser}/${repoName}`);
+    console.log(resJson.errors);
+  }
+  const {
+    repository: {
+      stargazers: { totalCount },
+      ref: {
+        target: { committedDate }
+      }
+    }
+  } = resJson.data;
+  return [totalCount, moment(committedDate).fromNow()];
 };
 
 $(document).ready(() => {
