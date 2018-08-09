@@ -1,4 +1,5 @@
-let githubAccessToken = "a4420c6e4256e36b0a371f8cc0cdd7475a9f1590";
+// TODO: why did this expire?
+let githubAccessToken = "cd8aa8995fa08e09e808ba81f83b7cb66424041a";
 let headers = {
   "Content-Type": "application/json; charset=utf-8",
   Authorization: `Bearer ${githubAccessToken}`
